@@ -1,0 +1,10 @@
+# documentation : https://editorconfig.org/
+
+# top-most EditorConfig file
+root = true
+
+# python config
+[*.py]
+indent_style = space
+indent_size = 4
+charset = utf-8
