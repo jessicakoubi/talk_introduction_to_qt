@@ -49,6 +49,12 @@ class RandButtonWin(QtWidgets.QMainWindow):
         g = random.randint(0, 255)
         b = random.randint(0, 255)
 
+        # NOTE: If you run this on Windows, it will use the QWindowsStyle style by default. The native
+        # theming engine block some QPalette modifications such as the QtGui.QPalette.Button used below.
+        # An alternative that does work across Windows/Linux and Mac is to use the setStyleSheet() method
+        # to apply some CSS to our button widget:
+        #   self.run_btn.setStyleSheet("background-color: rgb({}, {}, {});".format(r, g, b))
+
         # Create a new palette that we will apply to RandButtonWin.
         palette = QtGui.QPalette()
 
