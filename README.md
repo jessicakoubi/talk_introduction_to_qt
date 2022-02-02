@@ -14,6 +14,7 @@ The sources used in this series are available in [src](src) directory and the in
 
 Recordings of the series are available on YouTube:
 * [session 01](https://www.youtube.com/watch?v=6gbDUuGOz5U)
+* [session 02](https://www.youtube.com/watch?v=tuiHovDBW08)
 
 ## Slides
 
