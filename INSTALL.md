@@ -14,3 +14,8 @@ source env/bin/activate
 
 pip install -r requirements.txt
 ```
+
+## Mac Silicon Note
+
+The **requirements.txt** file above does not work on a Mac using a silicon chip (tested on an M1Pro). You will need to either compile PySide2, install it using homebrew 
+or, preferabley, switch to PySide6.
