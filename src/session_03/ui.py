@@ -14,7 +14,6 @@ from PySide2 import QtWidgets, QtGui, QtCore
 
 # internal imports
 import core
-import theme
 
 # logger
 _log = logging.getLogger(__name__)
@@ -36,15 +35,8 @@ _FILTERS = {
     "Moving Average": "Average each key value based on it's surrounding values.",
 }
 
-# Height of the CurveFiltererWin QMainWindow with both the options layout collapsed or expanded.
-_WIN_HEIGHT_HIDE_OPTIONS = 250
-_WIN_HEIGHT_SHOW_OPTIONS = _WIN_HEIGHT_HIDE_OPTIONS + 300
-
 # Path to the icons relative to the current module location.
 _ICONS_PATH = os.path.join(os.path.dirname(__file__), "icons")
-
-# QSettings instance used to save and restore the interface parameters next time you open it.
-_SETTINGS = QtCore.QSettings("jkoubi", "curve_filterer")
 
 
 class CurveFiltererWin(QtWidgets.QMainWindow):
@@ -58,7 +50,7 @@ class CurveFiltererWin(QtWidgets.QMainWindow):
 
         # Set the application title and size.
         self.setWindowTitle("Curve Filterer")
-        self.resize(600, _WIN_HEIGHT_HIDE_OPTIONS)
+        self.resize(600, 550)
 
         # Create menus in the QMainWindow menu-bar.
         self.create_menus()
@@ -77,54 +69,13 @@ class CurveFiltererWin(QtWidgets.QMainWindow):
         self.create_preview_layout(main_lay)
         self.create_options_layout(main_lay)
 
-        # Connect the main widgets to the preview updating functions.
-        self.intensity_slider.valueChanged.connect(self.update_preview)
-        self.filter_type_cb.currentIndexChanged[int].connect(self.update_preview)
         self.filter_type_cb.currentIndexChanged[int].connect(
             self.update_filter_description
         )
-        self.preserve_edges_chkb.stateChanged.connect(self.update_preview)
 
-    def closeEvent(self, event):
-        """Save the UI state when closing it."""
-
-        # Save the current window state.
-        _SETTINGS.setValue("windowState", self.saveState())
-
-        # Save the current filter widgets data.
-        _SETTINGS.setValue("filter_type", self.filter_type_cb.currentIndex())
-        _SETTINGS.setValue("preserve_edges", self.preserve_edges_chkb.isChecked())
-        _SETTINGS.setValue("intensity", self.intensity_slider.value())
-
-        # Save the settings we just set on disk.
-        _SETTINGS.sync()
-
-        # Accept the event and execute it's default behaviour next.
-        event.accept()
-
-        QtWidgets.QMainWindow.closeEvent(self, event)
-
-    def showEvent(self, event):
-        """Restore the UI state when it's being shown."""
-
-        # Restore the window state.
-        self.restoreState(_SETTINGS.value("windowState"))
-
-        # Get the saved filter widgets data and apply it.
-        self.filter_type_cb.setCurrentIndex(int(_SETTINGS.value("filter_type", 0)))
-        self.preserve_edges_chkb.setChecked(
-            bool(_SETTINGS.value("preserve_edges", False))
-        )
-        self.intensity_slider.setValue(float(_SETTINGS.value("intensity", 25)))
-
-        # Update the filter description and the filter preview widgets.
+        # We call the filter description in the session 3 only to display
+        # the description for the first entry when we launch the UI.
         self.update_filter_description()
-        self.update_preview()
-
-        # Accept the event and execute it's default behaviour next.
-        event.accept()
-
-        QtWidgets.QMainWindow.showEvent(self, event)
 
     def create_menus(self):
         """Create the menus in the QMainWindow menu bar."""
@@ -205,13 +156,10 @@ class CurveFiltererWin(QtWidgets.QMainWindow):
 
         # Intensity slider
         self.intensity_slider = QCurveIntensitySlider(QtCore.Qt.Horizontal, self)
+        intensity_lay.addWidget(self.intensity_slider)
 
         # Set a default value.
         self.intensity_slider.setValue(25)
-
-        # Set a fixed height so we can have a "chunkier"-looking slider.
-        self.intensity_slider.setFixedHeight(25)
-        intensity_lay.addWidget(self.intensity_slider)
 
     def create_preview_layout(self, parent_layout):
         """Create the curve preview layout.
@@ -253,29 +201,6 @@ class CurveFiltererWin(QtWidgets.QMainWindow):
         )
         preview_lay.addItem(bottom_spacer)
 
-    def toggle_options(self):
-        """
-        Show or Hide the options layout.
-        """
-
-        if self.scroll_area.isVisible():
-            self.scroll_area.setVisible(False)
-            self.options_bar_button.setText("+")
-
-            # This is a bit of an hack where in order for the window to resize properly
-            # and the Option button to stay at the same spot we need to process an arbitrary
-            # number of events before we call the resize() function to make sure that all QT
-            # processes ran.
-            for i in range(0, 10):
-                QtWidgets.QApplication.processEvents()
-            self.resize(self.width(), _WIN_HEIGHT_HIDE_OPTIONS)
-        else:
-            self.scroll_area.setVisible(True)
-            self.options_bar_button.setText("-")
-            for i in range(0, 10):
-                QtWidgets.QApplication.processEvents()
-            self.resize(self.width(), _WIN_HEIGHT_SHOW_OPTIONS)
-
     def create_options_layout(self, parent_layout):
         """Create the options layout.
 
@@ -305,8 +230,6 @@ class CurveFiltererWin(QtWidgets.QMainWindow):
         self.options_bar_button.setFlat(True)
         options_bar_lay.addWidget(self.options_bar_button)
 
-        self.options_bar_button.clicked.connect(self.toggle_options)
-
         options_bar_label = QtWidgets.QLabel(self)
         options_bar_label.setText("Options")
         options_bar_label.setToolTip("Show/Hide the smoothing options.")
@@ -323,9 +246,6 @@ class CurveFiltererWin(QtWidgets.QMainWindow):
         self.scroll_area.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.scroll_area.setWidget(options_wid)
         parent_layout.addWidget(self.scroll_area)
-
-        # Hide the scroll area since the options are hidden by default
-        self.scroll_area.hide()
 
         smooth_type_lay = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.LeftToRight)
         smooth_type_lay.setContentsMargins(0, 0, 0, 0)
@@ -405,20 +325,6 @@ class CurveFiltererWin(QtWidgets.QMainWindow):
             description_text = _FILTERS[smooth_type]
             self.filter_description_pte.setPlainText(description_text)
 
-    def update_preview(self):
-        """Update the curve preview by setting the raw data (the pre-filtered curve Y values), then
-        running the filtering algorithm by calling smooth_curve() which return a list of
-        filtered Y values.
-
-        :note: This can become slow if the input data is large, it's meant only as a preview,
-               if you work with a large data set it's better to have a pre-made set of Y values
-               to show the end-user a visual representation of the intensity and how each algorithm
-               treat the curve data as an alternative.
-        """
-
-        self.spline_preview_wid.set_raw_values(self.raw_values)
-        self.spline_preview_wid.set_filtered_values(self.smooth_curve())
-
     def smooth_curve(self):
         """Run the actual smoothing of the raw curve data based on the interface parameters.
 
@@ -453,7 +359,6 @@ class CurveFiltererWin(QtWidgets.QMainWindow):
         )
 
         self.raw_values = core.read_curve_file(filepath[0])
-        self.update_preview()
 
     def save_curve(self):
         """Save the result of the smoothing operations to a curve file."""
@@ -476,55 +381,6 @@ class QCurveIntensitySlider(QtWidgets.QSlider):
     def __init__(self, *args):
         super(QCurveIntensitySlider, self).__init__(*args)
 
-    def paintEvent(self, event):
-        """Paint our own slider by overriding the paint event."""
-
-        painter = QtGui.QPainter(self)
-        painter.setRenderHint(painter.Antialiasing)
-
-        # Create a border around our widget
-        pen = QtGui.QPen()
-        pen.setWidth(2)
-        pen.setStyle(QtCore.Qt.SolidLine)
-        pen.setColor(QtGui.QColor(46, 46, 46))
-        painter.setPen(pen)
-
-        # Draw two rectangles based on the widget enclosing one. We use the first
-        # rectangle to draw a gradient and then a second on top that work as a mask.
-        # We use the slider handle position to know where to start drawing the second
-        # rectangle used as a mask.
-        bg_rect = self.rect()
-        bg_rect.setHeight(bg_rect.height() - 6)
-        bg_center = bg_rect.center()
-        bg_center.setY(bg_center.y() + 3)
-        bg_rect.moveCenter(bg_center)
-
-        grad = QtGui.QLinearGradient(self.rect().topLeft(), self.rect().topRight())
-        grad.setColorAt(0.0, QtGui.QColor(94, 185, 115))
-        grad.setColorAt(1.0, QtGui.QColor(185, 94, 94))
-        painter.setBrush(grad)
-
-        painter.drawRect(bg_rect)
-
-        slider_pos = self.sliderPosition()
-        width = bg_rect.width()
-        right_x = slider_pos * width / 100
-        bg_rect.setX(right_x)
-
-        painter.setBrush(QtGui.QBrush(QtGui.QColor(57, 57, 57)))
-        painter.drawRect(bg_rect)
-
-        # Now draw the handle to be a circle based of the height of the widget.
-        handle_rect = self.rect()
-        handle_rect.setWidth(handle_rect.height())
-
-        handle_center = handle_rect.center()
-        handle_center.setX(right_x)
-        handle_rect.moveCenter(handle_center)
-
-        painter.setBrush(QtGui.QBrush(QtGui.QColor(101, 101, 101)))
-        painter.drawEllipse(handle_rect)
-
 
 class QCurvvePreviewer(QtWidgets.QWidget):
     """
@@ -538,127 +394,14 @@ class QCurvvePreviewer(QtWidgets.QWidget):
         self._values = values
         self._filtered_values = filtered_values
 
-    def set_raw_values(self, values):
-        """Set the raw curve values (pre-filtered) and then update the widget to re-draw it."""
-
-        self._values = values
-        self.update()
-
-    def set_filtered_values(self, filtered_values):
-        """Set the filtered curve values and then update the widget to re-draw it."""
-
-        self._filtered_values = filtered_values
-        self.update()
-
-    def paintEvent(self, event):
-        """
-        call the draw_curve() function twice. The first time with the raw Y coordinates, and second
-        time as a filtered one with the filtered values.
-        """
-
-        painter = QtGui.QPainter()
-        painter.begin(self)
-        painter.setRenderHints(QtGui.QPainter.Antialiasing, True)
-        self.draw_curve(painter, self._values)
-        self.draw_curve(painter, self._filtered_values, "filtered")
-        painter.end()
-
-    def draw_curve(self, painter, y_values, crv_type="raw"):
-        """Draw a curve based on the given values.
-
-        :param painter: QPainter instance to use.
-        :type painter: QPainter
-        :param y_values: List of the curve Y coordinates.
-        :type y_values: list of floats
-        :param crv_type: Type of curve to draw (raw or filtered), defaults to "raw"
-        :type crv_type: str, optional
-        """
-
-        if len(y_values) > 2:
-
-            # Change the curve and point colours and style based on its type.
-            if crv_type == "raw":
-                point_pen = QtGui.QPen(
-                    QtGui.QColor(0, 205, 207, 100), 1, QtCore.Qt.DashLine
-                )
-                point_brush = QtGui.QBrush(QtGui.QColor(0, 205, 207, 50))
-                line_pen = QtGui.QPen(
-                    QtGui.QColor(43, 120, 224, 160), 1, QtCore.Qt.DashLine
-                )
-            else:
-                point_pen = QtGui.QPen(
-                    QtGui.QColor(229, 1, 1, 255), 1, QtCore.Qt.DashLine
-                )
-                point_brush = QtGui.QBrush(QtGui.QColor(210, 35, 0, 255))
-                line_pen = QtGui.QPen(
-                    QtGui.QColor(183, 183, 183, 255), 1, QtCore.Qt.SolidLine
-                )
-
-            # Calculate the spacing based on the width of the QCurvvePreviewer parent widget.
-            # This ensure that even if parent widget change size we still draw the whole curve
-            # albeit with a lower or higher spacing between points.
-            # In our case the values we pass on to this draw_curve() functions are only on the Y
-            # axis since. You can however extend it to work with both axis if needed. The spacing
-            # below replace the X coordinate.
-            x_spacing = self.parent().width() / float(len(y_values) + 1)
-
-            # Draw the first point
-            prev_y = y_values[0]
-            prev_x = 2
-
-            painter.setPen(point_pen)
-            painter.setBrush(point_brush)
-            painter.drawEllipse(prev_x - 2, prev_y - 2, 4, 4)
-
-            # Draw the remaining points
-            for y in y_values[1:]:
-                x = prev_x + x_spacing
-                painter.setPen(line_pen)
-                painter.drawLine(prev_x, prev_y, x, y)
-
-                painter.setPen(point_pen)
-                painter.drawEllipse(x - 2, y - 2, 4, 4)
-
-                prev_y = y
-                prev_x = x
-
 
 if __name__ == "__main__":
 
     app = QtWidgets.QApplication(sys.argv)
 
-    # Create a pixmap with our splash-screen iamge.
-    pixmap = QtGui.QPixmap()
-    pixmap.load(os.path.join(_ICONS_PATH, "splash.png"))
-
-    # Create a slpash screen and brign it on top of other windows.
-    splash = QtWidgets.QSplashScreen(pixmap)
-    splash.setWindowFlags(splash.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
-
-    # Use the pixmap alpha as a mask for the splash screen since our image
-    # have rounded corners on top.
-    splash.setMask(pixmap.mask())
-
-    # Display a loading message at the bottom-right corner.
-    splash.showMessage(
-        "Loading ...",
-        alignment=QtCore.Qt.AlignBottom | QtCore.Qt.AlignRight,
-        color=QtGui.QColor("#fff"),
-    )
-
-    # Show the splash screen and process the events to make sure it gets displayed
-    splash.show()
-    app.processEvents()
-
-    # Apply our theme to the whole application.
-    theme.apply_theme(app)
-
     # Initialize and show the QMainWindow.
     window = CurveFiltererWin()
     window.show()
-
-    # Close the splash-screen once the QMainWindow show event is done.
-    splash.finish(window)
 
     exit_code = app.exec_()
     sys.exit(exit_code)
