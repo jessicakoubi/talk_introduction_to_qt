@@ -95,12 +95,9 @@ class CurveFiltererWin(QtWidgets.QMainWindow):
         self.create_options_layout(main_lay)
 
         # Connect the main widgets to the preview updating functions.
-        self.intensity_slider.valueChanged.connect(self.update_preview)
-        self.filter_type_cb.currentIndexChanged[int].connect(self.update_preview)
         self.filter_type_cb.currentIndexChanged[int].connect(
             self.update_filter_description
         )
-        self.preserve_edges_chkb.stateChanged.connect(self.update_preview)
 
     def closeEvent(self, event):
         """Save the UI state when closing it."""
@@ -136,7 +133,6 @@ class CurveFiltererWin(QtWidgets.QMainWindow):
 
         # Update the filter description and the filter preview widgets.
         self.update_filter_description()
-        self.update_preview()
 
         # Accept the event and execute it's default behaviour next.
         event.accept()
@@ -422,20 +418,6 @@ class CurveFiltererWin(QtWidgets.QMainWindow):
             description_text = _FILTERS[smooth_type]
             self.filter_description_pte.setPlainText(description_text)
 
-    def update_preview(self):
-        """Update the curve preview by setting the raw data (the pre-filtered curve Y values), then
-        running the filtering algorithm by calling smooth_curve() which return a list of
-        filtered Y values.
-
-        :note: This can become slow if the input data is large, it's meant only as a preview,
-               if you work with a large data set it's better to have a pre-made set of Y values
-               to show the end-user a visual representation of the intensity and how each algorithm
-               treat the curve data as an alternative.
-        """
-
-        self.spline_preview_wid.set_raw_values(self.raw_values)
-        self.spline_preview_wid.set_filtered_values(self.smooth_curve())
-
     def smooth_curve(self):
         """Run the actual smoothing of the raw curve data based on the interface parameters.
 
@@ -470,7 +452,6 @@ class CurveFiltererWin(QtWidgets.QMainWindow):
         )
 
         self.raw_values = core.read_curve_file(filepath[0])
-        self.update_preview()
 
     def save_curve(self):
         """Save the result of the smoothing operations to a curve file."""
@@ -555,81 +536,6 @@ class QCurvvePreviewer(QtWidgets.QWidget):
         self._values = values
         self._filtered_values = filtered_values
 
-    def set_raw_values(self, values):
-        """Set the raw curve values (pre-filtered) and then update the widget to re-draw it."""
-
-        self._values = values
-        self.update()
-
-    def set_filtered_values(self, filtered_values):
-        """Set the filtered curve values and then update the widget to re-draw it."""
-
-        self._filtered_values = filtered_values
-        self.update()
-
-    def paintEvent(self, event):
-        """
-        call the draw_curve() function twice. The first time with the raw Y coordinates, and second
-        time as a filtered one with the filtered values.
-        """
-
-        painter = QtGui.QPainter()
-        painter.begin(self)
-        painter.setRenderHints(QtGui.QPainter.Antialiasing, True)
-        self.draw_curve(painter, self._values)
-        self.draw_curve(painter, self._filtered_values, "filtered")
-        painter.end()
-
-    def draw_curve(self, painter, y_values, crv_type="raw"):
-        """Draw a curve based on the given values.
-
-        :param painter: QPainter instance to use.
-        :type painter: QPainter
-        :param y_values: List of the curve Y coordinates.
-        :type y_values: list of floats
-        :param crv_type: Type of curve to draw (raw or filtered), defaults to "raw"
-        :type crv_type: str, optional
-        """
-
-        if len(y_values) > 2:
-
-            # Change the curve and point colours and style based on its type.
-            if crv_type == "raw":
-                point_pen = _CURVE_RAW_PT_PEN
-                point_brush = _CURVE_RAW_PT_BRUSH
-                line_pen = _CURVE_RAW_LINE_PEN
-            else:
-                point_pen = _CURVE_SM_PT_PEN
-                point_brush = _CURVE_SM_PT_BRUSH
-                line_pen = _CURVE_SM_LINE_PEN
-
-            # Calculate the spacing based on the width of the QCurvvePreviewer parent widget.
-            # This ensure that even if parent widget change size we still draw the whole curve
-            # albeit with a lower or higher spacing between points.
-            # In our case the values we pass on to this draw_curve() functions are only on the Y
-            # axis since. You can however extend it to work with both axis if needed. The spacing
-            # below replace the X coordinate.
-            x_spacing = self.parent().width() / float(len(y_values) + 1)
-
-            # Draw the first point
-            prev_y = y_values[0]
-            prev_x = 2
-
-            painter.setPen(point_pen)
-            painter.setBrush(point_brush)
-            painter.drawEllipse(prev_x - 2, prev_y - 2, 4, 4)
-
-            # Draw the remaining points
-            for y in y_values[1:]:
-                x = prev_x + x_spacing
-                painter.setPen(line_pen)
-                painter.drawLine(prev_x, prev_y, x, y)
-
-                painter.setPen(point_pen)
-                painter.drawEllipse(x - 2, y - 2, 4, 4)
-
-                prev_y = y
-                prev_x = x
 
 
 if __name__ == "__main__":
