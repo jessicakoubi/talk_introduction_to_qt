@@ -19,6 +19,7 @@ Recordings of the series are available on YouTube:
 * [session 01](https://www.youtube.com/watch?v=6gbDUuGOz5U)
 * [session 02](https://www.youtube.com/watch?v=tuiHovDBW08)
 * [session 03](https://www.youtube.com/watch?v=OzRqzK3quY4)
+* [session 04](https://www.youtube.com/watch?v=NY3JVUtoS2w)
 
 ## Slides
 
