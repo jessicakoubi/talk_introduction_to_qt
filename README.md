@@ -1,6 +1,6 @@
 # Introduction to Qt
 
-Series of talks introducing how to use PySide/PyQt to create interfaces.
+Series of five talks introducing how to use PySide/PyQt to create interfaces.
 
 Given at [Women Who Code Python](https://www.womenwhocode.com/python) between January 11th 2022 and March 08th 2022.
 
@@ -20,6 +20,7 @@ Recordings of the series are available on YouTube:
 * [session 02](https://www.youtube.com/watch?v=tuiHovDBW08)
 * [session 03](https://www.youtube.com/watch?v=OzRqzK3quY4)
 * [session 04](https://www.youtube.com/watch?v=NY3JVUtoS2w)
+* [session 05](https://www.youtube.com/watch?v=ftc6yn3qUhQ)
 
 ## Slides
 
