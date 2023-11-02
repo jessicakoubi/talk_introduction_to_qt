@@ -9,7 +9,7 @@ import sys
 import logging
 
 # third-party imports
-from PySide2 import QtWidgets, QtGui
+from PySide6 import QtWidgets, QtGui
 
 # logger
 _log = logging.getLogger(__name__)

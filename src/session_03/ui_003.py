@@ -10,7 +10,7 @@ import logging
 import random
 
 # third-party imports
-from PySide2 import QtWidgets, QtGui, QtCore
+from PySide6 import QtWidgets, QtGui, QtCore
 
 # internal imports
 import core

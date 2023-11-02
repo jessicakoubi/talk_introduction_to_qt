@@ -10,7 +10,7 @@ import logging
 import random
 
 # third-party imports
-from PySide2 import QtWidgets, QtGui, QtCore
+from PySide6 import QtWidgets, QtGui, QtCore
 
 # internal imports
 import core
@@ -85,21 +85,21 @@ class CurveFiltererWin(QtWidgets.QMainWindow):
 
         # Create an open action in the file menu that can also be triggered by the Ctrl+O shortcut.
         open_icon_path = os.path.join(_ICONS_PATH, "open.png")
-        open_action = QtWidgets.QAction(QtGui.QIcon(open_icon_path), "Open", file_menu)
+        open_action = QtGui.QAction(QtGui.QIcon(open_icon_path), "Open", file_menu)
         open_action.setStatusTip("Open a curve file.")
         open_action.setShortcut("Ctrl+O")
         file_menu.addAction(open_action)
         open_action.triggered.connect(self.open_curve_file)
 
         save_icon_path = os.path.join(_ICONS_PATH, "save.png")
-        save_action = QtWidgets.QAction(QtGui.QIcon(save_icon_path), "Save", file_menu)
+        save_action = QtGui.QAction(QtGui.QIcon(save_icon_path), "Save", file_menu)
         save_action.setStatusTip("Save the smoothed curve.")
         save_action.setShortcut("Ctrl+S")
         file_menu.addAction(save_action)
         save_action.triggered.connect(self.save_curve)
 
         close_icon_path = os.path.join(_ICONS_PATH, "close.png")
-        close_action = QtWidgets.QAction(
+        close_action = QtGui.QAction(
             QtGui.QIcon(close_icon_path), "Close", file_menu
         )
         close_action.setStatusTip("Close the application.")

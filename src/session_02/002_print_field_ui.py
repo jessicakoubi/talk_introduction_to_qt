@@ -9,7 +9,7 @@ import sys
 import os
 
 # third-party imports
-from PySide2 import QtWidgets, QtGui
+from PySide6 import QtWidgets, QtGui
 
 # logger
 _log = logging.getLogger(__name__)
@@ -66,7 +66,7 @@ class PrintFieldWin(QtWidgets.QMainWindow):
         # Add an action to the File menu that close the QMainWindow
         # We also add an icon, a tool-tip and shortcut.
         close_icon_path = os.path.join(_ICONS_PATH, "close.png")
-        close_action = QtWidgets.QAction(
+        close_action = QtGui.QAction(
             QtGui.QIcon(close_icon_path), "Close", file_menu
         )
         close_action.setStatusTip("Close Interface.")

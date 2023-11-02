@@ -8,7 +8,7 @@ import os
 import logging
 
 # third-party imports
-from PySide2 import QtGui
+from PySide6 import QtGui
 
 
 # logger
@@ -60,7 +60,6 @@ def apply_theme(widget):
 
     palette.setBrush(QtGui.QPalette.Window, QtGui.QBrush(MID_COLOUR))
     palette.setBrush(QtGui.QPalette.WindowText, QtGui.QBrush(TEXT_COLOUR))
-    palette.setBrush(QtGui.QPalette.Foreground, QtGui.QBrush(BRIGHT_COLOUR))
     palette.setBrush(QtGui.QPalette.Base, QtGui.QBrush(DARK_COLOUR))
     palette.setBrush(QtGui.QPalette.AlternateBase, QtGui.QBrush(ALTERNATE_BASE_COLOUR))
     palette.setBrush(QtGui.QPalette.ToolTipBase, QtGui.QBrush(BASE_COLOUR))
