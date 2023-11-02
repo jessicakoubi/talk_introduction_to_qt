@@ -12,6 +12,8 @@ Given at [Women Who Code Python](https://www.womenwhocode.com/python) between Ja
 
 The sources used in this series are available in [src](src) directory and the installation steps are located in the [INSTALL.md](INSTALL.md) file.
 
+**2023.11.01:** An update of this repository working with PySide6 is available on the [pyside6_version](https://github.com/jessicakoubi/talk_introduction_to_qt/tree/pyside6_version) branch.
+
 ## Recording
 
 Recordings of the series are available on YouTube:
