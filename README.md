@@ -1,4 +1,4 @@
-# Introduction to Qt
+# Introduction to Qt - PySide6 version
 
 Series of five talks introducing how to use PySide/PyQt to create interfaces.
 
